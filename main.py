@@ -57,12 +57,13 @@ class webserverHandler(BaseHTTPRequestHandler):
                 myresult = mycursor.fetchall()
                 
                 for x in myresult:
-                    redirected_url = x[1]
+                    longer_url = x[1]
                     shorter_url = x[2]
 
+                    #if self.path matches with above query (if short URL available in db) then redirect it to long url.
                     if route_path == shorter_url:
                         self.send_response(301)
-                        self.send_header('Location',redirected_url)
+                        self.send_header('Location',longer_url)
                         self.end_headers()
                     else:
                         return "<h1> Non such URL found</h1>"
