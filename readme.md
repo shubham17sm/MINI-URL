@@ -1,6 +1,6 @@
 # MINI URL 
 
-MINI URL is a custom URL shortner writen in [Python](https://www.python.org/) and using [MySQL](https://www.mysql.com/) database. MINI URL uses HTTP 301 redirects for for its links.
+MINI URL is a custom URL shortner written in [Python](https://www.python.org/) and using [MySQL](https://www.mysql.com/) database. MINI URL uses HTTP 301 redirects for its links.
 
 # Getting Started
 
