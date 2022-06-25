@@ -1,6 +1,23 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import cgi, sys, string, random
-from database_model import *
+import cgi, sys, string, random, time
+import mysql.connector
+
+count = 1
+
+try:
+    mydb = mysql.connector.connect(
+    host="127.0.0.1",
+    user="root",
+    password= "root",
+    database="url_shortner"
+    )
+    mycursor = mydb.cursor()
+    connection_status = True
+    print("Successfully connected to database")
+except Exception as databaseerr:
+    print("Connection to database failed")
+    print("Error: ", databaseerr)
+    time.sleep(2)
 
 
 collect_url = []
@@ -9,7 +26,7 @@ def randomStringGenerator():
     S = 5
     ran = "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase, k = S))
     try:
-        mycursor.execute(f"SELECT short_url FROM urlshort WHERE short_url = {ran} LIMIT 1;")
+        mycursor.execute("""SELECT short_url FROM urlshort WHERE short_url = %s LIMIT 1;""", (ran,))
         myresult = mycursor.fetchall()
         if len(myresult) == 0:
             print("No results found in DB for short URL")
@@ -52,8 +69,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                 # print(output)
                 return
             else:
-                mycursor = mydb.cursor()
-                mycursor.execute(f"SELECT id, long_url, short_url FROM urlshort WHERE short_url = '{route_path}' ORDER BY id DESC LIMIT 1;")
+                mycursor.execute("""SELECT id, long_url, short_url FROM urlshort WHERE short_url = %s ORDER BY id DESC LIMIT 1;""", (route_path,))
                 myresult = mycursor.fetchall()
                 
                 for x in myresult:
@@ -66,8 +82,7 @@ class webserverHandler(BaseHTTPRequestHandler):
                         self.send_header('Location',longer_url)
                         self.end_headers()
                     else:
-                        return "<h1> Non such URL found</h1>"
-
+                        return self.send_error(404, "Non such URL found")
         except IOError:
             self.send_error(404, "File not found %s" % self.path)
 
@@ -89,17 +104,15 @@ class webserverHandler(BaseHTTPRequestHandler):
                     fields = cgi.parse_multipart(self.rfile, pdict)
                     messagecontent = fields.get('message')
                     long_url_from_user = messagecontent[0]
-                    print(long_url_from_user)
+                    # print(long_url_from_user)
 
                 random_url_string = randomStringGenerator()
                 if random_url_string is not None:
                     collect_url.append(f'127.0.0.1:8000/{random_url_string}')
-                    mycursor.execute(f"INSERT INTO urlshort(long_url, short_url) VALUES('{long_url_from_user}', '{random_url_string}');")
+                    mycursor.execute("""INSERT INTO urlshort(long_url, short_url) VALUES(%s, %s);""", (long_url_from_user, random_url_string))
                     mydb.commit()
-                    print("NEW COMBINATION INSERTED IN DATABASE")
+                    print(f"User URL: {long_url_from_user}, generated short url: {random_url_string} values inserted in database")
                     print(collect_url[-1])
-
-
         except:
             self.send_error(404, "{}".format(sys.exc_info()[0]))
             print(sys.exc_info())

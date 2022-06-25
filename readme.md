@@ -14,7 +14,11 @@ https://github.com/shubham17sm/MINI-URL.git
   pip install -r requirements.txt
   python server.py
 
+  or 
+
+  python server.py --host [host address] --port [port number]
 ```
+
 # Post Installation
 Go to the web browser and visit http://127.0.0.1:8000/
 
